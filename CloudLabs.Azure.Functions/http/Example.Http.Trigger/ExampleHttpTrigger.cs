@@ -30,7 +30,7 @@ namespace Example.Http.Trigger
         [OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter(name: "code", In = ParameterLocation.Query, Required = true, Type = typeof(string), Description = "Provide item code")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "Get item by item code")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> GetMaterialAsync(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Materials/{code}")] HttpRequest req)
         {
             _logger.LogInformation("Processing item search.");
