@@ -17,7 +17,7 @@ variables:
   vmImageName: 'windows-2022'
 
   # Working Directory
-  workingDirectory: '$(System.DefaultWorkingDirectory)/CloudLabs.Azure.Functions/http/Example.Http.Trigger/'
+  workingDirectory: '$(System.DefaultWorkingDirectory)/CloudLabs.Azure.Functions/http'
 
 stages:
 - stage: Build
@@ -31,12 +31,20 @@ stages:
 
     steps:
     - task: DotNetCoreCLI@2
-      displayName: Build
+      displayName: Build Function
       inputs:
         command: 'build'
         projects: |
-          $(workingDirectory)/*.csproj
-        arguments: --output $(System.DefaultWorkingDirectory)/publish_output --configuration Release
+          $(workingDirectory)/Example.Http.Trigger/*.csproj
+        arguments: --output $(System.DefaultWorkingDirectory)/Example.Http.Trigger/publish_output --configuration Release
+        
+    - task: DotNetCoreCLI@2
+      displayName: Build Test Project
+      inputs:
+        command: 'build'
+        projects: |
+          $(workingDirectory)/Example.Http.Trigger.Tests/*.csproj
+        arguments: --output $(System.DefaultWorkingDirectory)/Example.Http.Trigger/publish_output --configuration Release
 
     - task: VSTest@2
       inputs:
@@ -45,7 +53,7 @@ stages:
           **\*test*.dll
           !**\*TestAdapter.dll
           !**\obj\**
-        searchFolder: '$(System.DefaultWorkingDirectory)/CloudLabs.Azure.Functions/http/Example.Http.Trigger.Tests/'
+        searchFolder: '$(System.DefaultWorkingDirectory)/Example.Http.Trigger.Tests/'
 
     - task: ArchiveFiles@2
       displayName: 'Archive files'
@@ -63,7 +71,6 @@ stages:
   displayName: Deploy stage
   dependsOn: Build
   condition: succeeded()
-
   jobs:
   - deployment: Deploy
     displayName: Deploy
@@ -76,6 +83,22 @@ stages:
         deploy:
 
           steps:
+          - task: AzureCLI@2
+            displayName: 'Create Azure Storage Account'
+            inputs:
+              azureSubscription: 'SPConnection'
+              scriptType: 'pscore'
+              scriptLocation: 'inlineScript'
+              inlineScript: 'az storage account create --name <STORAGE_NAME> --location <REGION> --resource-group AzureFunctionsQuickstart-rg --sku Standard_LRS '
+
+          - task: AzureCLI@2
+            displayName: 'Create Azure Function'
+            inputs:
+              azureSubscription: 'SPConnection'
+              scriptType: 'pscore'
+              scriptLocation: 'inlineScript'
+              inlineScript: 'az storage account create --name <STORAGE_NAME> --location <REGION> --resource-group AzureFunctionsQuickstart-rg --sku Standard_LRS '
+
           - task: AzureFunctionApp@1
             displayName: 'Azure functions app deploy'
             inputs:
