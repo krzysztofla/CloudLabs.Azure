@@ -38,6 +38,15 @@ stages:
           $(workingDirectory)/*.csproj
         arguments: --output $(System.DefaultWorkingDirectory)/publish_output --configuration Release
 
+    - task: VSTest@2
+      inputs:
+        testSelector: 'testAssemblies'
+        testAssemblyVer2: |
+          **\*test*.dll
+          !**\*TestAdapter.dll
+          !**\obj\**
+        searchFolder: '$(System.DefaultWorkingDirectory)/CloudLabs.Azure.Functions/http/Example.Http.Trigger.Tests/'
+
     - task: ArchiveFiles@2
       displayName: 'Archive files'
       inputs:
